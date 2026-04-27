@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publishing Console · Used Car Platform</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="pages.css">
+  <style>
+    /* Additional minimal styles for color swatch, error handling, image preview —不影响原有框架 */
+    .color-select-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .color-select-wrapper select {
+      flex: 1;
+      min-width: 140px;
+    }
+    #vehicle-color,
+    #vehicle-model,
+    #vehicle-year,
+    #vehicle-mileage,
+    #vehicle-location,
+    #vehicle-price {
+      width: 60%;
+    }
+    .color-select-wrapper {
+      justify-content: flex-start;
+    }
+    .color-select-wrapper select {
+      flex: none;
+    }
+    .color-swatch {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.2);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      background: #f0f0f0;
+      flex-shrink: 0;
+    }
+    .other-hint {
+      font-size: 12px;
+      color: #866f54;
+      margin-left: 4px;
+    }
+    .error-msg {
+      color: #ff6b6b;
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+    }
+    .field-error {
+      border-color: #ff6b6b !important;
+    }
+    .preview-image {
+      max-width: 100%;
+      max-height: 140px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: #f5eddc;
+      padding: 8px;
+    }
+    .preview-image img {
+      max-width: 100%;
+      max-height: 120px;
+      border-radius: 6px;
+      display: block;
+    }
+    .file-name {
+      font-size: 12px;
+      color: #c5b18a;
+      margin-top: 6px;
+    }
+    .image-note {
+      font-size: 11px;
+      color: #ba9f7a;
+      margin-top: 5px;
+    }
+    .lt-field-grid.two {
+      gap: 16px;
+    }
+    .auth-wrap {
+      max-width: 760px;
+      margin: 18px 0 0 68px;
+    }
+    .form-grid {
+      grid-template-columns: 1fr;
+      gap: 12px 16px;
+    }
+    #vehicle-desc {
+      min-height: 72px;
+      height: 72px;
+      width: calc(150% + 0px);
+      max-width: none;
+    }
+    .input,
+    .textarea,
+    .color-select-wrapper select {
+      text-align: left;
+    }
+    .form-actions-inline {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .form-actions-inline .btn {
+      width: auto !important;
+      min-width: 170px;
+    }
+    .success-message {
+      background: #2c5a3b;
+      color: #e2e8c3;
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-top: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+    @media (max-width: 900px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-actions-inline .btn {
+        width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell lt-shell">
+    <header class="lt-topbar">
+      <a class="lt-back" href="home.html" aria-label="Back to control">‹</a>
+      <div class="lt-brand-block">
+        <p class="lt-brand">Inventory Operations</p>
+        <h1>Publishing Console</h1>
+      </div>
+      <nav class="lt-nav">
+        <a class="lt-nav-link" href="home.html">Home</a>
+        <a class="lt-nav-link active" href="add car ai.html">Publish</a>
+        <a class="lt-nav-link" href="login.html">Login</a>
+      </nav>
+    </header>
+
+    <div class="auth-wrap">
+      <div class="card">
+        <h2 style="text-align:left; margin:0 0 20px 0;">Vehicle Publish</h2>
+        <form id="vehiclePublishForm" action="#" method="post" enctype="multipart/form-data">
+          <div class="form-grid">
+            <div class="field">
+              <label for="vehicle-color">Color *</label>
+              <div class="color-select-wrapper">
+                <select id="vehicle-color" class="input" required>
+                  <option value="">Select a color</option>
+                  <option value="White">White</option>
+                  <option value="Gray">Gray</option>
+                  <option value="Brown">Brown</option>
+                  <option value="Black">Black</option>
+                  <option value="Yellow">Yellow</option>
+                  <option value="Pink">Pink</option>
+                  <option value="Red">Red</option>
+                  <option value="Purple">Purple</option>
+                  <option value="Green">Green</option>
+                  <option value="Blue">Blue</option>
+                  <option value="Other">Other</option>
+                </select>
+                <span class="color-swatch" id="colorSwatch"></span>
+              </div>
+              <div class="error-msg" id="colorError"></div>
+            </div>
+
+            <div class="field">
+              <label for="vehicle-model">Model *</label>
+              <input class="input" id="vehicle-model" name="model" type="text">
+              <div class="error-msg" id="modelError"></div>
+            </div>
+
+            <div class="field">
+              <label for="vehicle-year">Year (4 digits) *</label>
+              <input class="input" id="vehicle-year" name="year" type="text" maxlength="4" inputmode="numeric">
+              <div class="error-msg" id="yearError"></div>
+            </div>
+
+            <div class="field">
+              <label for="vehicle-mileage">Mileage (km) *</label>
+              <input class="input" id="vehicle-mileage" name="mileage" type="text" inputmode="numeric">
+              <div class="error-msg" id="mileageError"></div>
+            </div>
+
+            <div class="field">
+              <label for="vehicle-location">Location *</label>
+              <input class="input" id="vehicle-location" name="location" type="text">
+              <div class="error-msg" id="locationError"></div>
+            </div>
+
+            <div class="field">
+              <label for="vehicle-price">Price (¥) *</label>
+              <input class="input" id="vehicle-price" name="price" type="text" inputmode="numeric">
+              <div class="error-msg" id="priceError"></div>
+            </div>
+
+            <div class="field">
+              <label for="vehicle-desc">Vehicle Description</label>
+              <textarea class="textarea" id="vehicle-desc" name="desc" rows="3"></textarea>
+              <div class="error-msg" id="descError"></div>
+            </div>
+
+            <div class="field">
+              <label for="vehicle-image">Upload Image</label>
+              <input class="input" type="file" id="vehicle-image" accept="image/jpeg, image/png, image/jpg, image/webp">
+              <div id="imagePreviewContainer" class="preview-image" style="display: none;"></div>
+              <div class="file-name" id="imageFileName">No file chosen</div>
+              <div class="image-note">Supports JPG, PNG, WEBP. Max 5MB (simulated).</div>
+              <div class="error-msg" id="imageError"></div>
+            </div>
+          </div>
+
+          <div class="form-actions-inline">
+            <button class="btn btn-success" type="submit">Submit for Review</button>
+            <button class="btn btn-ghost" type="reset" id="resetFormBtn">Reset</button>
+          </div>
+          <div id="formSuccessMsg" class="success-message" style="display: none;"></div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      // DOM elements
+      const colorSelect = document.getElementById('vehicle-color');
+      const colorSwatch = document.getElementById('colorSwatch');
+      const modelInput = document.getElementById('vehicle-model');
+      const yearInput = document.getElementById('vehicle-year');
+      const mileageInput = document.getElementById('vehicle-mileage');
+      const locationInput = document.getElementById('vehicle-location');
+      const priceInput = document.getElementById('vehicle-price');
+      const descTextarea = document.getElementById('vehicle-desc');
+      const imageInput = document.getElementById('vehicle-image');
+      const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+      const imageFileNameSpan = document.getElementById('imageFileName');
+      const form = document.getElementById('vehiclePublishForm');
+      const resetBtn = document.getElementById('resetFormBtn');
+      const successMsgDiv = document.getElementById('formSuccessMsg');
+
+      // Error message spans
+      const colorError = document.getElementById('colorError');
+      const modelError = document.getElementById('modelError');
+      const yearError = document.getElementById('yearError');
+      const mileageError = document.getElementById('mileageError');
+      const locationError = document.getElementById('locationError');
+      const priceError = document.getElementById('priceError');
+      const imageError = document.getElementById('imageError');
+
+      // Helper: clear all error styles & messages
+      function clearAllErrors() {
+        const errorDivs = [colorError, modelError, yearError, mileageError, locationError, priceError, imageError];
+        errorDivs.forEach(div => { if(div) { div.style.display = 'none'; div.innerText = ''; } });
+        const fields = [colorSelect, modelInput, yearInput, mileageInput, locationInput, priceInput];
+        fields.forEach(field => { if(field) field.classList.remove('field-error'); });
+        if(imageInput) imageInput.classList.remove('field-error');
+        if(successMsgDiv) successMsgDiv.style.display = 'none';
+      }
+
+      // Color swatch logic based on selected color (Other => no swatch / gray outline)
+      function updateColorSwatch() {
+        const selectedColor = colorSelect.value;
+        if (!selectedColor || selectedColor === '') {
+          colorSwatch.style.background = '#f0f0f0';
+          colorSwatch.style.border = '1px solid rgba(0,0,0,0.2)';
+          return;
+        }
+        if (selectedColor.toLowerCase() === 'other') {
+          colorSwatch.style.background = '#f5eddc';
+          colorSwatch.style.border = '1px dashed #aa8c64';
+          colorSwatch.style.opacity = '0.7';
+          return;
+        }
+        // Map display colors for swatch
+        let swatchColor = '#dddddd';
+        const colorMap = {
+          'White': '#f8f9fa', 'Gray': '#a0a0a0', 'Brown': '#8B5A2B', 'Black': '#2c2c2c',
+          'Yellow': '#FFD966', 'Pink': '#F9B7FF', 'Red': '#E34234', 'Purple': '#9370DB',
+          'Green': '#5A9E4E', 'Blue': '#3B82F6'
+        };
+        if(colorMap[selectedColor]) {
+          swatchColor = colorMap[selectedColor];
+        } else {
+          swatchColor = '#bc9a6c';
+        }
+        colorSwatch.style.background = swatchColor;
+        colorSwatch.style.border = '1px solid #3b2c1a';
+        colorSwatch.style.opacity = '1';
+      }
+
+      colorSelect.addEventListener('change', updateColorSwatch);
+      updateColorSwatch();
+
+      // Image preview & file name (fully functional)
+      imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        imageError.style.display = 'none';
+        imageFileNameSpan.innerText = file ? file.name : 'No file chosen';
+        
+        // Clear preview container
+        imagePreviewContainer.innerHTML = '';
+        if (file && file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            const imgElement = document.createElement('img');
+            imgElement.src = ev.target.result;
+            imgElement.alt = 'Car preview';
+            imgElement.style.maxWidth = '100%';
+            imgElement.style.borderRadius = '6px';
+            imagePreviewContainer.appendChild(imgElement);
+            imagePreviewContainer.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        } else if (file) {
+          imageError.innerText = 'Please select a valid image file (jpg, png, webp).';
+          imageError.style.display = 'block';
+          imagePreviewContainer.style.display = 'none';
+          imageFileNameSpan.innerText = 'Invalid file';
+        } else {
+          imagePreviewContainer.style.display = 'none';
+        }
+      });
+
+      // Reset form custom (including image preview, swatch)
+      function resetFormFields() {
+        form.reset();
+        // Reset color swatch to default
+        colorSelect.value = '';
+        updateColorSwatch();
+        // Clear preview
+        imagePreviewContainer.innerHTML = '';
+        imagePreviewContainer.style.display = 'none';
+        imageFileNameSpan.innerText = 'No file chosen';
+        clearAllErrors();
+        if(successMsgDiv) successMsgDiv.style.display = 'none';
+        // Remove any extra field-error classes
+        const allInputs = [modelInput, yearInput, mileageInput, locationInput, priceInput, colorSelect];
+        allInputs.forEach(inp => { if(inp) inp.classList.remove('field-error'); });
+      }
+      
+      resetBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        resetFormFields();
+      });
+
+      // Validation helpers
+      function validateYear(yearStr) {
+        if (!yearStr) return false;
+        const trimmed = yearStr.trim();
+        if (!/^\d{4}$/.test(trimmed)) return false;
+        const yearNum = parseInt(trimmed, 10);
+        const currentYear = new Date().getFullYear();
+        return yearNum >= 1900 && yearNum <= currentYear + 5;
+      }
+
+      function validatePrice(priceStr) {
+        if (!priceStr) return false;
+        const trimmed = priceStr.trim();
+        if (!/^\d+(\.\d+)?$/.test(trimmed)) return false;
+        const priceNum = parseFloat(trimmed);
+        return !isNaN(priceNum) && priceNum >= 0;
+      }
+
+      function validateMileage(mileageStr) {
+        if (!mileageStr) return false;
+        const trimmed = mileageStr.trim();
+        if (!/^\d+$/.test(trimmed)) return false;
+        const mileageNum = parseInt(trimmed, 10);
+        return !isNaN(mileageNum) && mileageNum >= 0;
+      }
+
+      // Main submit validation
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearAllErrors();
+        let isValid = true;
+
+        // 1. Color
+        const colorVal = colorSelect.value;
+        if (!colorVal) {
+          colorError.innerText = 'Please select a color.';
+          colorError.style.display = 'block';
+          colorSelect.classList.add('field-error');
+          isValid = false;
+        } else {
+          colorSelect.classList.remove('field-error');
+        }
+
+        // 2. Model
+        const modelVal = modelInput.value.trim();
+        if (!modelVal) {
+          modelError.innerText = 'Model is required.';
+          modelError.style.display = 'block';
+          modelInput.classList.add('field-error');
+          isValid = false;
+        } else {
+          modelInput.classList.remove('field-error');
+        }
+
+        // 3. Year (exactly 4 digits)
+        const yearVal = yearInput.value.trim();
+        if (!yearVal) {
+          yearError.innerText = 'Year is required.';
+          yearError.style.display = 'block';
+          yearInput.classList.add('field-error');
+          isValid = false;
+        } else if (!validateYear(yearVal)) {
+          yearError.innerText = 'Year must be exactly 4 digits.';
+          yearError.style.display = 'block';
+          yearInput.classList.add('field-error');
+          isValid = false;
+        } else {
+          yearInput.classList.remove('field-error');
+        }
+
+        // 4. Mileage (positive integer)
+        const mileageVal = mileageInput.value.trim();
+        if (!mileageVal) {
+          mileageError.innerText = 'Mileage is required.';
+          mileageError.style.display = 'block';
+          mileageInput.classList.add('field-error');
+          isValid = false;
+        } else if (!validateMileage(mileageVal)) {
+          mileageError.innerText = 'Mileage must be a valid number (kilometers).';
+          mileageError.style.display = 'block';
+          mileageInput.classList.add('field-error');
+          isValid = false;
+        } else {
+          mileageInput.classList.remove('field-error');
+        }
+
+        // 5. Location
+        const locationVal = locationInput.value.trim();
+        if (!locationVal) {
+          locationError.innerText = 'Location is required.';
+          locationError.style.display = 'block';
+          locationInput.classList.add('field-error');
+          isValid = false;
+        } else {
+          locationInput.classList.remove('field-error');
+        }
+
+        // 6. Price (numeric)
+        const priceVal = priceInput.value.trim();
+        if (!priceVal) {
+          priceError.innerText = 'Price is required.';
+          priceError.style.display = 'block';
+          priceInput.classList.add('field-error');
+          isValid = false;
+        } else if (!validatePrice(priceVal)) {
+          priceError.innerText = 'Price must be a valid number (digits only).';
+          priceError.style.display = 'block';
+          priceInput.classList.add('field-error');
+          isValid = false;
+        } else {
+          priceInput.classList.remove('field-error');
+        }
+
+        // 7. Image: optional, but if file is selected verify it's an image
+        const imageFile = imageInput.files[0];
+        if (imageFile && !imageFile.type.startsWith('image/')) {
+          imageError.innerText = 'Please select a valid image (JPG, PNG, WEBP).';
+          imageError.style.display = 'block';
+          imageInput.classList.add('field-error');
+          isValid = false;
+        } else {
+          imageInput.classList.remove('field-error');
+        }
+
+        if (isValid) {
+          // Simulate successful submission
+          const vehicleData = {
+            color: colorVal,
+            model: modelVal,
+            year: yearVal,
+            mileage: mileageVal,
+            location: locationVal,
+            price: priceVal,
+            description: descTextarea.value.trim(),
+            image: imageFile ? imageFile.name : 'No image uploaded'
+          };
+          console.log('Vehicle submitted:', vehicleData);
+          successMsgDiv.innerText = `✓ Vehicle “${colorVal} ${modelVal}” added successfully!`;
+          successMsgDiv.style.display = 'block';
+          
+          // Optional: reset form after success (keep data for demo, but reset optional)
+          // resetFormFields();   // If you want auto reset after success, uncomment. But we'll keep choice.
+          // We keep success message without clearing automatically, but user can reset manually.
+          // Remove field-error classes if any leftovers
+          setTimeout(() => {
+            // Auto hide success message after 4 secs (optional)
+            if(successMsgDiv) {
+              setTimeout(() => { successMsgDiv.style.display = 'none'; }, 4000);
+            }
+          }, 100);
+        } else {
+          // scroll to first error roughly
+          const firstError = document.querySelector('.field-error');
+          if(firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
